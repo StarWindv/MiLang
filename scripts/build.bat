@@ -1,0 +1,1 @@
+clang++ src/MiMain.cpp -o mi.exe -std=c++20
