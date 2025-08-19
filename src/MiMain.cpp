@@ -21,6 +21,8 @@ using IntType = intmax_t;
 using FloatType = long double;
 using StringType = string;
 using BoolType = bool;
+const string prompt      = ">>> ";
+const string wait_prompt = "..> ";
 
 
 int main(int argc, char* argv[]) {
@@ -43,8 +45,18 @@ int main(int argc, char* argv[]) {
     while(true) {
         try {
             if (isREPL) {
-                cout << CYAN << ">>> " << RESET;
+                cout << CYAN << prompt << RESET;
                 source = ReplReceive();
+                if (source.back() == ':') {
+                    while (true) {
+                        cout << PURPLE << wait_prompt << RESET;
+                        string temp = ReplReceive();
+                        source += '\n' + temp;
+                        if (temp.front()!=' ') {
+                            break;
+                        }
+                    }
+                }
             }
             if (source == "") {
                 continue;
