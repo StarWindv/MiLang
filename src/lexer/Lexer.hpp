@@ -121,9 +121,6 @@
             if (id == "while") {
                 return Token(TokenType::WHILE, id, line);
             }
-            if (id == "for") {
-                return Token(TokenType::FOR, id, line);
-            }
 
             return Token(TokenType::IDENTIFIER, id, line);
         }
@@ -154,7 +151,6 @@
                         }
                         advance();
                     }
-
                     
                     if (currentChar == '\n') {
                         line++;
@@ -172,7 +168,23 @@
                         return Token(TokenType::DEDENT, "", line);
                     }
                 }
-
+                if(currentChar == '`') {
+                    char temp1 = currentChar;
+                    advance();
+                    char temp2 = currentChar;
+                    advance();
+                    char temp3 = currentChar;
+                    if (
+                        (temp1 == '`' && temp2 == '`' && temp3 == '`')
+                    ) {
+                        skipBlockComment();
+                        continue;
+                    }
+                    pos -= 2;
+                    currentChar = source[pos];
+                    skipLineComment();
+                    continue;
+                }
                 if (isspace(currentChar)) {
                     if (currentChar == '\n') {
                         line++;
