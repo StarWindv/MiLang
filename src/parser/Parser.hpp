@@ -285,6 +285,72 @@
             return make_unique<WhileNode>(std::move(condition), std::move(body), line);
         }
 
+        unique_ptr<ASTNode> parseExpressionOrAssignment() {
+            if (currentToken.type == TokenType::IDENTIFIER) {
+                size_t pos = lexer.getPos();
+                char currentChar = lexer.getCurrentChar();
+                int currentLine = currentToken.line;
+
+                Token nextToken = lexer.getNextToken();
+                bool isAssignment = (nextToken.type == TokenType::ASSIGN);
+
+                lexer.setPos(pos);
+                lexer.setCurrentChar(currentChar);
+                currentToken = Token(TokenType::IDENTIFIER, currentToken.value, currentLine);
+
+                if (isAssignment) {
+                    return parseAssignment();
+                }
+            }
+            return parseExpression();
+        }
+
+        // 添加 parseForStatement 函数
+        unique_ptr<ForNode> parseForStatement() {
+            int line = currentToken.line;
+            eat(TokenType::FOR); // 吃掉 for
+
+            eat(TokenType::LPAREN); // 吃掉左括号
+
+            // 1. 解析初始化部分
+            unique_ptr<ASTNode> init;
+            if (currentToken.type != TokenType::SEMICOLON) {
+                init = parseExpressionOrAssignment();
+            }
+            eat(TokenType::SEMICOLON); // 吃掉第一个分号
+
+            // 2. 解析条件部分
+            unique_ptr<ASTNode> condition;
+            if (currentToken.type != TokenType::SEMICOLON) {
+                condition = parseExpressionOrAssignment();
+            } else {
+                // 条件为空时默认为 true
+                condition = make_unique<BooleanNode>(true);
+            }
+            eat(TokenType::SEMICOLON); // 吃掉第二个分号
+
+            // 3. 解析更新部分
+            unique_ptr<ASTNode> update;
+            if (currentToken.type != TokenType::RPAREN) {
+                update = parseExpressionOrAssignment();
+            }
+            eat(TokenType::RPAREN); // 吃掉右括号
+
+            eat(TokenType::COLON); // 吃掉冒号
+
+            // 期望缩进标记
+            if (currentToken.type != TokenType::INDENT) {
+                error("Expected indentation after 'for' statement");
+            }
+            eat(TokenType::INDENT);
+
+            // 解析循环体
+            auto body = parseBlock();
+
+            return make_unique<ForNode>(std::move(init), std::move(condition),
+                                       std::move(update), std::move(body), line);
+        }
+
         unique_ptr<ASTNode> parseStatement() {
             switch (currentToken.type) {
                 case TokenType::IDENTIFIER: {
@@ -309,6 +375,9 @@
                 }
                 case TokenType::WHILE: {
                     return parseWhileStatement();
+                }
+                case TokenType::FOR: {
+                    return parseForStatement();
                 }
                 default:
                     return parseExpression();

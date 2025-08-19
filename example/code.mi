@@ -1,4 +1,71 @@
+writeln(">>> TEST DEFINE VARIABLE")
 a = 5
-while a < 10:
-    writeln("a = {}", a)
-    a = a + 1
+writeln("a = {}", a)
+writeln("<<< END TEST DEFINE VARIABLE")
+writeln()
+
+writeln(">>> TEST MATHEMATICAL OPERATION")
+writeln("|> POWER:")
+writeln("Math style: a^2  = {}", a^2)
+writeln("Pythonic  : a**2 = {}", a**2)
+writeln("|> MULTI:")
+writeln("{} * 9.7 = {}", a, a * 9.7)
+writeln("|> HYBRID OPERATION")
+result = ((((10+5)*(8-3))/(7^2))**(12-5))
+writeln("((((10+5)*(8-3))/(7^2))**(12-5)) = {}", result)
+writeln("<<< END TEST MATHEMATICAL OPERATION")
+writeln()
+
+writeln(">>> TEST FOR-LOOP")
+for (i = 0; i<4; i = i+1):
+    writeln(i)
+`writeln("TEST SCOPE: i = {}", i) ` Raise Error: Undefined variable: i
+writeln("<<< END TEST FOR-LOOP")
+writeln()
+
+writeln(">>> TEST WHILE-LOOP")
+count = 0
+while count <= 10:
+    count = count + 1
+    writeln("count_{} = {}", count, count)
+writeln("TEST SCOPE: count = {}", count)
+writeln("<<< END TEST WHILE-LOOP")
+writeln()
+
+writeln(">>> TEST TYPE-SYSTEM")
+writeln("Type of 5  : ", type(5))
+writeln('Type of "5": ', type("5"))
+writeln('Type of 5.0: ', type(5.0))
+writeln("<<< END TEST TYPE-SYSTEM")
+
+writeln(">>> TEST TYPE-TRANSFORM")
+writeln('from 5 to "5": ')
+writeln(' - BEFORE: {}, AFTER: {}', type(5), type(string(5)))
+writeln()
+writeln('from 5 to 5.0: ')
+writeln(' - BEFORE: {}, AFTER: {}', type(5), type(float(5)))
+writeln(' - SHOW  : before-{}, after-{}', 5, float(5))
+writeln()
+writeln('from string "True" to boolean True:')
+writeln(' - BEFORE: {}, AFTER: {}', type("True"), type(bool("True")))
+writeln(' - SHOW  : before-{}, after-{}', "True", bool("True"))
+writeln()
+writeln('from string "False" to boolean False:')
+writeln(' - BEFORE: {}, AFTER: {}', type("False"), type(bool("False")))
+writeln(' - SHOW  : before-{}, after-{}', "False", bool("false"))
+writeln(' - SHOW  : before-{}, after-{}', "False", bool("False"))
+writeln("In this test we know: the 'false' in lowercase which while be transformed to boolean 'False'")
+writeln("but if the first letter is a capital letters, which will be transformed to boolean 'True'")
+writeln()
+writeln('from float 5.5 to boolean True:')
+writeln(' - BEFORE: {}, AFTER: {}', type(5.5), type(bool(5.5)))
+writeln(' - SHOW  : before-{}, after-{}', 5.5, bool(5.5))
+writeln()
+writeln('from integer 0 to boolean False:')
+writeln(' - BEFORE: {}, AFTER: {}', type(0), type(bool(0)))
+writeln(' - SHOW  : before-{}, after-{}', 0, bool(0))
+writeln("<<< END TEST TYPE-TRANSFORM")
+writeln()
+
+writeln("Inner Method List: ")
+writeln(inner())

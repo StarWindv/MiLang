@@ -41,6 +41,7 @@
         "COLON",        // :
 
         "WHILE",
+        "FOR",
 
         "INDENT",       // 缩进
         "DEDENT",       // 解除缩进

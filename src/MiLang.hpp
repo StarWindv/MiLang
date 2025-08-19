@@ -71,6 +71,7 @@
         COLON,        // :
 
         WHILE,
+        FOR,
 
         INDENT,       // 缩进
         DEDENT,       // 解除缩进
@@ -197,6 +198,21 @@
 
         WhileNode(unique_ptr<ASTNode> condition, unique_ptr<BlockNode> body, int line)
             : condition(std::move(condition)), body(std::move(body)), line(line) {}
+
+        Value evaluate(Interpreter& interpreter) override;
+    };
+
+    struct ForNode : ASTNode {
+        unique_ptr<ASTNode> init;
+        unique_ptr<ASTNode> condition;
+        unique_ptr<ASTNode> update;
+        unique_ptr<BlockNode> body;
+        int line;
+
+        ForNode(unique_ptr<ASTNode> init, unique_ptr<ASTNode> condition,
+                unique_ptr<ASTNode> update, unique_ptr<BlockNode> body, int line)
+            : init(std::move(init)), condition(std::move(condition)),
+              update(std::move(update)), body(std::move(body)), line(line) {}
 
         Value evaluate(Interpreter& interpreter) override;
     };

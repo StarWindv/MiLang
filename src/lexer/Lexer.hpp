@@ -121,6 +121,9 @@
             if (id == "while") {
                 return Token(TokenType::WHILE, id, line);
             }
+            if (id == "for") {
+                return Token(TokenType::FOR, id, line);
+            }
 
             return Token(TokenType::IDENTIFIER, id, line);
         }

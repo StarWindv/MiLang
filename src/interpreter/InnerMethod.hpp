@@ -311,8 +311,13 @@
 
         Value funcList(const vector<Value>& args, function<const FuncVector&()> getFuncList) {
             auto data = getFuncList();
+            int count = 0;
             for (const auto& [name, func] : data) {
-                cout << name << endl;
+                cout << name << "      ";
+                count++;
+                if (count % 4 == 0) {
+                    cout << endl;
+                }
             }
             return StringType("");
         }
