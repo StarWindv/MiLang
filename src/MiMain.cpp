@@ -28,6 +28,9 @@ const string wait_prompt = "..> ";
 int main(int argc, char* argv[]) {
     bool isREPL;
     std::string source;
+    std::string filename = "Default.mi";
+    int EXIT_NUM = 0;
+    Interpreter interpreter;
 
     if (argc != 2) {
         isREPL = true;
@@ -35,13 +38,13 @@ int main(int argc, char* argv[]) {
         cout << "Type \"inner()\" for built-in function's list " << endl;
     } else {
         isREPL = false;
-        source = readFile(argv[1]);
+        filename = argv[1];
+        source = readFile(filename);
         if (source == "") {
             return 0;
         }
     }
-    int EXIT_NUM = 0;
-    Interpreter interpreter;
+
     while(true) {
         try {
             if (isREPL) {
@@ -61,6 +64,7 @@ int main(int argc, char* argv[]) {
             if (source == "") {
                 continue;
             }
+            sourcePrint(source, filename);
 
             Lexer lexer(source);
 

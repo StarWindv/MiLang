@@ -124,6 +124,15 @@
             if (id == "for") {
                 return Token(TokenType::FOR, id, line);
             }
+            if (id == "if") {
+                return Token(TokenType::IF, id, line);
+            }
+            if (id == "elif") {
+                return Token(TokenType::ELIF, id, line);
+            }
+            if (id == "else") {
+                return Token(TokenType::ELSE, id, line);
+            }
 
             return Token(TokenType::IDENTIFIER, id, line);
         }

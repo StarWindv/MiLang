@@ -252,16 +252,17 @@
         
         unique_ptr<BlockNode> parseBlock() {
             vector<unique_ptr<ASTNode>> statements;
-            
-            while (currentToken.type != TokenType::DEDENT && 
+
+            while (currentToken.type != TokenType::DEDENT &&
                    currentToken.type != TokenType::EOF_TOKEN) {
+
                 statements.push_back(parseStatement());
             }
-            
+
             if (currentToken.type == TokenType::DEDENT) {
                 eat(TokenType::DEDENT);
             }
-            
+
             return make_unique<BlockNode>(std::move(statements));
         }
         
@@ -273,13 +274,13 @@
             
             eat(TokenType::COLON);
             
-            // 期望缩进标记
+            
             if (currentToken.type != TokenType::INDENT) {
                 error("Expected indentation after 'while' statement");
             }
             eat(TokenType::INDENT);
             
-            // 解析循环体
+            
             auto body = parseBlock();
             
             return make_unique<WhileNode>(std::move(condition), std::move(body), line);
@@ -305,51 +306,101 @@
             return parseExpression();
         }
 
-        // 添加 parseForStatement 函数
+        
         unique_ptr<ForNode> parseForStatement() {
             int line = currentToken.line;
-            eat(TokenType::FOR); // 吃掉 for
+            eat(TokenType::FOR); 
 
-            eat(TokenType::LPAREN); // 吃掉左括号
+            eat(TokenType::LPAREN); 
 
-            // 1. 解析初始化部分
+            
             unique_ptr<ASTNode> init;
             if (currentToken.type != TokenType::SEMICOLON) {
                 init = parseExpressionOrAssignment();
             }
-            eat(TokenType::SEMICOLON); // 吃掉第一个分号
+            eat(TokenType::SEMICOLON); 
 
-            // 2. 解析条件部分
+            
             unique_ptr<ASTNode> condition;
             if (currentToken.type != TokenType::SEMICOLON) {
                 condition = parseExpressionOrAssignment();
             } else {
-                // 条件为空时默认为 true
+                
                 condition = make_unique<BooleanNode>(true);
             }
-            eat(TokenType::SEMICOLON); // 吃掉第二个分号
+            eat(TokenType::SEMICOLON); 
 
-            // 3. 解析更新部分
+            
             unique_ptr<ASTNode> update;
             if (currentToken.type != TokenType::RPAREN) {
                 update = parseExpressionOrAssignment();
             }
-            eat(TokenType::RPAREN); // 吃掉右括号
+            eat(TokenType::RPAREN); 
 
-            eat(TokenType::COLON); // 吃掉冒号
+            eat(TokenType::COLON); 
 
-            // 期望缩进标记
+            
             if (currentToken.type != TokenType::INDENT) {
                 error("Expected indentation after 'for' statement");
             }
             eat(TokenType::INDENT);
 
-            // 解析循环体
+            
             auto body = parseBlock();
 
             return make_unique<ForNode>(std::move(init), std::move(condition),
                                        std::move(update), std::move(body), line);
         }
+
+        unique_ptr<IfNode> parseIfStatement() {
+            vector<IfNode::Branch> branches;
+
+            
+            eat(TokenType::IF);
+            auto condition = parseExpression();
+            eat(TokenType::COLON);
+
+            
+            if (currentToken.type != TokenType::INDENT) {
+                error("Expected indentation after 'if' statement");
+            }
+            eat(TokenType::INDENT);
+
+            auto ifBody = parseBlock();
+            branches.push_back({std::move(condition), std::move(ifBody)});
+
+            
+            while (currentToken.type == TokenType::ELIF) {
+                eat(TokenType::ELIF);
+                auto elifCondition = parseExpression();
+                eat(TokenType::COLON);
+
+                if (currentToken.type != TokenType::INDENT) {
+                    error("Expected indentation after 'elif' statement");
+                }
+                eat(TokenType::INDENT);
+
+                auto elifBody = parseBlock();
+                branches.push_back({std::move(elifCondition), std::move(elifBody)});
+            }
+
+            
+            unique_ptr<BlockNode> elseBlock = nullptr;
+            if (currentToken.type == TokenType::ELSE) {
+                eat(TokenType::ELSE);
+                eat(TokenType::COLON);
+
+                if (currentToken.type != TokenType::INDENT) {
+                    error("Expected indentation after 'else' statement");
+                }
+                eat(TokenType::INDENT);
+
+                elseBlock = parseBlock();
+            }
+
+            return make_unique<IfNode>(std::move(branches), std::move(elseBlock));
+        }
+
 
         unique_ptr<ASTNode> parseStatement() {
             switch (currentToken.type) {
@@ -379,6 +430,10 @@
                 case TokenType::FOR: {
                     return parseForStatement();
                 }
+                case TokenType::IF: {
+                    return parseIfStatement();
+                }
+
                 default:
                     return parseExpression();
             }

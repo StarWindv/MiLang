@@ -69,3 +69,9 @@ writeln()
 
 writeln("Inner Method List: ")
 writeln(inner())
+
+check = bool(receive("Input something: "))
+if check:
+    writeln("TEST CHECK IS: {}", check)
+else:
+    writeln("TEST CHECK IS: {}", check)

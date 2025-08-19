@@ -45,7 +45,7 @@
             this->funcList = funcs;
             auto getFuncList = [this]() -> const FuncVector& {
                 return this->funcList;
-            }; // Ensure the function `inner` in inner()'s return.
+            }; 
             auto innerFunc = wrapIMFuncWithArg(&InnerMethod::funcList, getFuncList);
             funcList.push_back({"inner", innerFunc});
             for (const auto& [name, func] : funcList) {
@@ -79,7 +79,7 @@
             }
             auto newFrame = make_unique<Frame>(parent);
 
-            // 复制父作用域的变量到新作用域
+            
             if (parent) {
                 for (const auto& [varName, value] : parent->variables) {
                     newFrame->set(varName, value);
@@ -90,7 +90,7 @@
         }
 
         void popFrame() {
-            if (frames.size() > 1) { // 保留全局作用域
+            if (frames.size() > 1) { 
                 frames.pop();
             }
         }
@@ -107,7 +107,7 @@
             return it->second(innermethod, args);
         }
 
-        // 添加获取父帧的方法
+        
         Frame* getParentFrame() const {
             if (frames.size() < 2) return nullptr;
             return frames.top()->parent;

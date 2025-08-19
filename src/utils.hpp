@@ -4,6 +4,7 @@
         #include <fstream>
         #include <string>
         #include <iostream>
+        #include "colors.hpp"
 
         using namespace std;
 
@@ -23,6 +24,12 @@
             string line;
             getline(cin, line);
             return line;
+        }
+
+        void sourcePrint(string source, string filename = "Default.mi") {
+            cout << PURPLE << "=============== | " << filename << " SOURCE | ===============" << endl;
+            cout << CYAN << source << endl;
+            cout << GOLD   << "=============== |     END SOURCE    | ===============" << RESET << endl;
         }
 
 

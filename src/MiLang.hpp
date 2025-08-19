@@ -73,6 +73,10 @@
         WHILE,
         FOR,
 
+        IF,
+        ELIF,
+        ELSE,
+
         INDENT,       // 缩进
         DEDENT,       // 解除缩进
         EOF_TOKEN,    // 文件结束
@@ -217,6 +221,20 @@
         Value evaluate(Interpreter& interpreter) override;
     };
 
+    struct IfNode : ASTNode {
+        struct Branch {
+            unique_ptr<ASTNode> condition;
+            unique_ptr<BlockNode> body;
+        };
+        vector<Branch> branches;
+        unique_ptr<BlockNode> elseBlock;
+
+        IfNode(vector<Branch> branches, unique_ptr<BlockNode> elseBlock)
+            : branches(std::move(branches)), elseBlock(std::move(elseBlock)) {}
+
+        Value evaluate(Interpreter& interpreter) override;
+    };
+
     struct Frame {
         unordered_map<string, Value> variables;
         Frame* parent;
@@ -224,14 +242,12 @@
         Frame(Frame* parent = nullptr) : parent(parent) {}
 
         bool find(const string& name, Value& outValue) const {
-            // 首先在当前作用域查找
             auto it = variables.find(name);
             if (it != variables.end()) {
                 outValue = it->second;
                 return true;
             }
 
-            // 如果在当前作用域找不到，尝试在父作用域查找
             if (parent) {
                 return parent->find(name, outValue);
             }
@@ -243,10 +259,9 @@
         }
 
         void set(const string& name, const Value& value) {
-            // 如果变量在当前作用域或父作用域已存在，则更新最近的作用域中的值
+
             Value tmp;
             if (find(name, tmp)) {
-                // 找到变量存在的作用域并更新
                 Frame* target = findFrameContaining(name);
                 if (target) {
                     target->variables[name] = value;
@@ -254,18 +269,15 @@
                 }
             }
 
-            // 变量不存在，在当前作用域创建
             variables[name] = value;
         }
 
     private:
         Frame* findFrameContaining(const string& name) const {
-            // 首先检查当前作用域
             if (variables.find(name) != variables.end()) {
                 return const_cast<Frame*>(this);
             }
 
-            // 递归检查父作用域
             if (parent) {
                 return parent->findFrameContaining(name);
             }

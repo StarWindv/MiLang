@@ -29,16 +29,12 @@
     }
     
     Value WhileNode::evaluate(Interpreter& interpreter) {
-        // 创建循环作用域
         interpreter.pushFrame();
-        
         int loopCount = 0;
         while (true) {
-            // 检查循环条件
             Value condValue = condition->evaluate(interpreter);
             InnerMethod& inner = interpreter.getInnerMethod();
             
-            // 检查条件值是否为真
             bool conditionTrue = false;
             if (holds_alternative<IntType>(condValue)) {
                 conditionTrue = (get<IntType>(condValue) != 0);
@@ -55,40 +51,38 @@
             if (!conditionTrue) {
                 break;
             }
-            
-            // 执行循环体
+
             body->evaluate(interpreter);
-            
-            // 防止无限循环
+
             if (++loopCount > MAX_DEAD_LOOP) {
                 throw runtime_error("Possible infinite loop detected at line " + to_string(line));
             }
         }
         
-        // 退出循环作用域
+        
         interpreter.popFrame();
         
-        return 0; // 循环不返回值
+        return 0; 
     }
 
-    // 添加 ForNode::evaluate 实现
+    
     Value ForNode::evaluate(Interpreter& interpreter) {
-        // 创建 for 循环作用域
+        
         interpreter.pushFrame();
 
         try {
-            // 执行初始化
+            
             if (init) {
                 init->evaluate(interpreter);
             }
 
             int loopCount = 0;
             while (true) {
-                // 检查循环条件
+                
                 Value condValue = condition->evaluate(interpreter);
                 InnerMethod& inner = interpreter.getInnerMethod();
 
-                // 检查条件值是否为真
+                
                 bool conditionTrue = false;
                 if (holds_alternative<IntType>(condValue)) {
                     conditionTrue = (get<IntType>(condValue) != 0);
@@ -106,28 +100,58 @@
                     break;
                 }
 
-                // 执行循环体
+                
                 body->evaluate(interpreter);
 
-                // 执行更新
+                
                 if (update) {
                     update->evaluate(interpreter);
                 }
 
-                // 防止无限循环
+                
                 if (++loopCount > MAX_DEAD_LOOP) {
                     throw runtime_error("Possible infinite loop detected at line " + to_string(line));
                 }
             }
         } catch (...) {
-            interpreter.popFrame(); // 确保异常时也能弹出作用域
+            interpreter.popFrame(); 
             throw;
         }
 
-        // 退出作用域
+        
         interpreter.popFrame();
 
-        return 0; // for循环不返回值
+        return 0; 
+    }
+    Value IfNode::evaluate(Interpreter& interpreter) {
+        for (auto& branch : branches) {
+            Value conditionValue = branch.condition->evaluate(interpreter);
+            InnerMethod& inner = interpreter.getInnerMethod();
+
+            
+            bool conditionTrue = false;
+            if (holds_alternative<IntType>(conditionValue)) {
+                conditionTrue = (get<IntType>(conditionValue) != 0);
+            } else if (holds_alternative<FloatType>(conditionValue)) {
+                conditionTrue = (get<FloatType>(conditionValue) != 0.0);
+            } else if (holds_alternative<BoolType>(conditionValue)) {
+                conditionTrue = get<BoolType>(conditionValue);
+            } else if (holds_alternative<StringType>(conditionValue)) {
+                conditionTrue = !get<StringType>(conditionValue).empty();
+            } else {
+                throw runtime_error("Type error in if condition");
+            }
+
+            if (conditionTrue) {
+                return branch.body->evaluate(interpreter);
+            }
+        }
+
+        if (elseBlock) {
+            return elseBlock->evaluate(interpreter);
+        }
+
+        return 0; 
     }
 
 #endif

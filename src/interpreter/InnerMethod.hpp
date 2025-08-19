@@ -300,7 +300,7 @@
         }
 
         Value exitFunction(const vector<Value>& args) {
-            cout << "Exit MiLang REPL";
+            cout << "Exit MiLang REPL" << endl;
             #ifndef __GNUC__
                 quick_exit(0);
             #else
