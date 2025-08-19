@@ -8,14 +8,13 @@
 
         using namespace std;
 
-        string readFile(const string& filename) {
-            ifstream file(filename);
+        string readFile(const std::string& filename) {
+            std::ifstream file(filename, std::ios::binary);
             if (!file.is_open()) {
-                throw runtime_error("Cannot open file: " + filename);
+                throw std::runtime_error("Cannot open file: " + filename);
             }
-
-            std::string content((istreambuf_iterator<char>(file)),
-                                istreambuf_iterator<char>());
+            std::string content((std::istreambuf_iterator<char>(file)),
+                               std::istreambuf_iterator<char>());
             return content;
         }
 

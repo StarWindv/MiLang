@@ -41,6 +41,8 @@
                 {"exit", wrapIMFunc(&InnerMethod::exitFunction)},
                 {"writeln", wrapIMFuncWithArg(&InnerMethod::writelnFunction, true)},
                 {"write",   wrapIMFuncWithArg(&InnerMethod::writelnFunction, false)},
+                {"println", wrapIMFuncWithArg(&InnerMethod::printlnFunction, true)},
+                {"print",   wrapIMFuncWithArg(&InnerMethod::printlnFunction, false)},
             };
             this->funcList = funcs;
             auto getFuncList = [this]() -> const FuncVector& {

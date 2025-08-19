@@ -46,12 +46,15 @@ int main(int argc, char* argv[]) {
     }
 
     while(true) {
+        string full_prompt;
         try {
             if (isREPL) {
-                cout << CYAN << prompt << RESET;
+                full_prompt = CYAN + prompt + RESET;
+                cout << full_prompt;
                 source = ReplReceive();
                 if (source.back() == ':') {
                     while (true) {
+                        full_prompt = PURPLE + wait_prompt + RESET;
                         cout << PURPLE << wait_prompt << RESET;
                         string temp = ReplReceive();
                         source += '\n' + temp;

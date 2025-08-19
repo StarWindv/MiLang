@@ -2,6 +2,7 @@
 #define INNER_METHOD_HPP
 
     #include "../MiLang.hpp"
+    #include "../colors.hpp"
 
     using FuncVector = std::vector<
         std::pair<
@@ -290,6 +291,158 @@
             return StringType("");
         }
 
+        Value printlnFunction(const vector<Value>& args, bool need_new_line = true) {
+            static const auto unescapeChar = [](char c) -> char {
+                switch (c) {
+                    case 'n': return '\n';
+                    case 't': return '\t';
+                    case 'r': return '\r';
+                    case 'e': return '\033'; 
+                    case 'a': return '\a';
+                    case 'b': return '\b';
+                    case 'f': return '\f';
+                    case 'v': return '\v';
+                    case '0': return '\0';
+                    default: return c;
+                }
+            };
+
+            auto outputWithEscape = [](const std::string& s) {
+                bool escaping = false;
+                for (char c : s) {
+                    if (escaping) {
+                        cout << unescapeChar(c);
+                        escaping = false;
+                    } else if (c == '\\') {
+                        escaping = true;
+                    } else {
+                        cout << c;
+                    }
+                }
+                
+                if (escaping) {
+                    cout << '\\';
+                }
+            };
+
+            auto countEmptyPlaceholders = [](const std::string& s) -> int {
+                int count = 0;
+                for (size_t i = 0; i < s.size(); ++i) {
+                    if (s[i] == '{' && i + 1 < s.size() && s[i + 1] == '}') {
+                        count++;
+                        i++; 
+                    }
+                }
+                return count;
+            };
+
+            if (args.empty()) {
+                if (need_new_line) cout << endl;
+                return StringType("");
+            }
+
+            
+            if (holds_alternative<StringType>(args[0])) {
+                const std::string& format = get<StringType>(args[0]);
+                const vector<Value> params(args.begin() + 1, args.end());
+                const int placeholderCount = countEmptyPlaceholders(format);
+
+                if (placeholderCount != 0 && placeholderCount != static_cast<int>(params.size())) {
+                    throw runtime_error(
+                        std::string(need_new_line ? "writeln()" : "write()") +
+                        " placeholder count mismatch: " +
+                        std::to_string(placeholderCount) +
+                        " placeholders, " +
+                        std::to_string(params.size()) +
+                        " arguments"
+                    );
+                }
+
+                if (placeholderCount > 0) {
+                    size_t paramIndex = 0;
+                    size_t pos = 0;
+                    bool escaping = false;
+
+                    while (pos < format.size()) {
+                        if (escaping) {
+                            cout << unescapeChar(format[pos]);
+                            escaping = false;
+                            pos++;
+                            continue;
+                        }
+
+                        if (format[pos] == '\\') {
+                            escaping = true;
+                            pos++;
+                            continue;
+                        }
+
+                        if (format[pos] == '{' && pos + 1 < format.size() && format[pos + 1] == '}') {
+                            
+                            outputWithEscape(format.substr(pos, pos - pos));
+
+                            
+                            if (paramIndex < params.size()) {
+                                if (holds_alternative<StringType>(params[paramIndex])) {
+                                    outputWithEscape(get<StringType>(params[paramIndex]));
+                                } else {
+                                    cout << this->valueToString(params[paramIndex]);
+                                }
+                                paramIndex++;
+                            }
+
+                            pos += 2; 
+                            continue;
+                        }
+
+                        
+                        if (format[pos] == '{' || format[pos] == '}') {
+                            size_t start = pos;
+                            size_t end = format.find_first_of("{}", pos + 1);
+
+                            if (end == string::npos) {
+                                
+                                outputWithEscape(format.substr(pos));
+                                break;
+                            }
+
+                            
+                            outputWithEscape(format.substr(pos, end - pos + 1));
+                            pos = end + 1;
+                            continue;
+                        }
+
+                        
+                        size_t nextSpecial = format.find_first_of("\\{}", pos);
+                        if (nextSpecial == string::npos) {
+                            
+                            outputWithEscape(format.substr(pos));
+                            break;
+                        }
+
+                        
+                        outputWithEscape(format.substr(pos, nextSpecial - pos));
+                        pos = nextSpecial;
+                    }
+
+                    if (need_new_line) cout << endl;
+                    return StringType("");
+                }
+            }
+
+            
+            for (const auto& arg : args) {
+                if (holds_alternative<StringType>(arg)) {
+                    outputWithEscape(get<StringType>(arg));
+                } else {
+                    cout << this->valueToString(arg);
+                }
+            }
+
+            if (need_new_line) cout << endl;
+            return StringType("");
+        }
+
         Value cleanScreen(const vector<Value>& args) {
             #ifdef _WIN32
                 system("cls");
@@ -300,7 +453,7 @@
         }
 
         Value exitFunction(const vector<Value>& args) {
-            cout << "Exit MiLang REPL" << endl;
+            cout << RESET << "Exit MiLang REPL" << endl;
             #ifndef __GNUC__
                 quick_exit(0);
             #else
@@ -318,6 +471,9 @@
                 if (count % 4 == 0) {
                     cout << endl;
                 }
+            }
+            if (count % 4 != 0) {
+                cout << endl;
             }
             return StringType("");
         }

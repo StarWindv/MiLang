@@ -1,4 +1,4 @@
-writeln(">>> TEST DEFINE VARIABLE")
+println(">>> TEST DEFINE VARIABLE")
 a = 5
 writeln("a = {}", a)
 writeln("<<< END TEST DEFINE VARIABLE")
