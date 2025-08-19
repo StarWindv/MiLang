@@ -284,54 +284,6 @@
             
             return make_unique<WhileNode>(std::move(condition), std::move(body), line);
         }
-        
-        unique_ptr<ForNode> parseForStatement() {
-            int line = currentToken.line;
-            eat(TokenType::FOR);
-            
-            // 必须有左括号
-            if (currentToken.type != TokenType::LPAREN) {
-                error("Expected '(' after 'for'");
-            }
-            eat(TokenType::LPAREN);
-            
-            // 解析初始化部分（可以是赋值或空）
-            unique_ptr<ASTNode> init = nullptr;
-            if (currentToken.type != TokenType::SEMICOLON) {
-                // 修复：使用 parseExpression() 而不是 parseStatement()
-                init = parseExpression();
-            }
-            eat(TokenType::SEMICOLON);
-            
-            // 解析条件部分
-            unique_ptr<ASTNode> condition = nullptr;
-            if (currentToken.type != TokenType::SEMICOLON) {
-                condition = parseExpression();
-            }
-            eat(TokenType::SEMICOLON);
-            
-            // 解析更新部分
-            unique_ptr<ASTNode> update = nullptr;
-            if (currentToken.type != TokenType::RPAREN) {
-                // 修复：使用 parseExpression() 而不是 parseStatement()
-                update = parseExpression();
-            }
-            eat(TokenType::RPAREN);
-            
-            eat(TokenType::COLON);
-            
-            // 期望缩进标记
-            if (currentToken.type != TokenType::INDENT) {
-                error("Expected indentation after 'for' statement");
-            }
-            eat(TokenType::INDENT);
-            
-            // 解析循环体
-            auto body = parseBlock();
-            
-            return make_unique<ForNode>(std::move(init), std::move(condition), 
-                                        std::move(update), std::move(body), line);
-        }
 
         unique_ptr<ASTNode> parseStatement() {
             switch (currentToken.type) {
@@ -357,9 +309,6 @@
                 }
                 case TokenType::WHILE: {
                     return parseWhileStatement();
-                }
-                case TokenType::FOR: {
-                    return parseForStatement();
                 }
                 default:
                     return parseExpression();

@@ -40,7 +40,6 @@
         "SEMICOLON",    // ; 分号
         "COLON",        // :
 
-        "FOR",          // for
         "WHILE",
 
         "INDENT",       // 缩进

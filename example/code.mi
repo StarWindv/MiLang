@@ -1,8 +1,4 @@
 a = 5
-writeln("a = {}, To float: {}", a, float(a))
-write("No auto endl for this line")
-writeln()
-i = 0
-while i < 5:
-    i = i + 1
-    writeln("i{} = {}", i, i)
+while a < 10:
+    writeln("a = {}", a)
+    a = a + 1

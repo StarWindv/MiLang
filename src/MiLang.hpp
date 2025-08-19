@@ -28,7 +28,7 @@
     using BoolType = bool;
 
     extern bool DEBUG; // Under Development
-    const int MAX_DEAD_LOOP = 20000;
+    const int MAX_DEAD_LOOP = 200000;
 
     struct FunctionType {
         std::string name;
@@ -70,7 +70,6 @@
         SEMICOLON,    // ; 分号
         COLON,        // :
 
-        FOR,
         WHILE,
 
         INDENT,       // 缩进
@@ -198,21 +197,6 @@
 
         WhileNode(unique_ptr<ASTNode> condition, unique_ptr<BlockNode> body, int line)
             : condition(std::move(condition)), body(std::move(body)), line(line) {}
-
-        Value evaluate(Interpreter& interpreter) override;
-    };
-
-    struct ForNode : ASTNode {
-        unique_ptr<ASTNode> init;
-        unique_ptr<ASTNode> condition;
-        unique_ptr<ASTNode> update;
-        unique_ptr<BlockNode> body;
-        int line;
-
-        ForNode(unique_ptr<ASTNode> init, unique_ptr<ASTNode> condition,
-                unique_ptr<ASTNode> update, unique_ptr<BlockNode> body, int line)
-            : init(std::move(init)), condition(std::move(condition)),
-              update(std::move(update)), body(std::move(body)), line(line) {}
 
         Value evaluate(Interpreter& interpreter) override;
     };
