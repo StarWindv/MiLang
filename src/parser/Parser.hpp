@@ -324,24 +324,24 @@
 
             return make_unique<BlockNode>(std::move(statements));
         }
-        
+
         unique_ptr<WhileNode> parseWhileStatement() {
             int line = currentToken.line;
             eat(TokenType::WHILE);
-            
+
             unique_ptr<ASTNode> condition = parseExpression();
-            
+
             eat(TokenType::COLON);
-            
-            
+
+
             if (currentToken.type != TokenType::INDENT) {
                 error("Expected indentation after 'while' statement");
             }
             eat(TokenType::INDENT);
-            
-            
+
+
             auto body = parseBlock();
-            
+
             return make_unique<WhileNode>(std::move(condition), std::move(body), line);
         }
 
@@ -365,46 +365,46 @@
             return parseExpression();
         }
 
-        
+
         unique_ptr<ForNode> parseForStatement() {
             int line = currentToken.line;
-            eat(TokenType::FOR); 
+            eat(TokenType::FOR);
 
-            eat(TokenType::LPAREN); 
+            eat(TokenType::LPAREN);
 
-            
+
             unique_ptr<ASTNode> init;
             if (currentToken.type != TokenType::SEMICOLON) {
                 init = parseExpressionOrAssignment();
             }
-            eat(TokenType::SEMICOLON); 
+            eat(TokenType::SEMICOLON);
 
-            
+
             unique_ptr<ASTNode> condition;
             if (currentToken.type != TokenType::SEMICOLON) {
                 condition = parseExpressionOrAssignment();
             } else {
-                
+
                 condition = make_unique<BooleanNode>(true);
             }
-            eat(TokenType::SEMICOLON); 
+            eat(TokenType::SEMICOLON);
 
-            
+
             unique_ptr<ASTNode> update;
             if (currentToken.type != TokenType::RPAREN) {
                 update = parseExpressionOrAssignment();
             }
-            eat(TokenType::RPAREN); 
+            eat(TokenType::RPAREN);
 
-            eat(TokenType::COLON); 
+            eat(TokenType::COLON);
 
-            
+
             if (currentToken.type != TokenType::INDENT) {
                 error("Expected indentation after 'for' statement");
             }
             eat(TokenType::INDENT);
 
-            
+
             auto body = parseBlock();
 
             return make_unique<ForNode>(std::move(init), std::move(condition),
@@ -414,12 +414,12 @@
         unique_ptr<IfNode> parseIfStatement() {
             vector<IfNode::Branch> branches;
 
-            
+
             eat(TokenType::IF);
             auto condition = parseExpression();
             eat(TokenType::COLON);
 
-            
+
             if (currentToken.type != TokenType::INDENT) {
                 error("Expected indentation after 'if' statement");
             }
@@ -428,7 +428,7 @@
             auto ifBody = parseBlock();
             branches.push_back({std::move(condition), std::move(ifBody)});
 
-            
+
             while (currentToken.type == TokenType::ELIF) {
                 eat(TokenType::ELIF);
                 auto elifCondition = parseExpression();
@@ -443,7 +443,7 @@
                 branches.push_back({std::move(elifCondition), std::move(elifBody)});
             }
 
-            
+
             unique_ptr<BlockNode> elseBlock = nullptr;
             if (currentToken.type == TokenType::ELSE) {
                 eat(TokenType::ELSE);
@@ -460,25 +460,25 @@
             return make_unique<IfNode>(std::move(branches), std::move(elseBlock));
         }
 
-        
-        
+
+
         unique_ptr<ASTNode> parseFunctionDefinition() {
             eat(TokenType::DEF);
 
-            
+
             std::string name = currentToken.value;
             eat(TokenType::IDENTIFIER);
 
-            
+
             eat(TokenType::LPAREN);
             std::vector<Parameter> parameters;
 
             if (currentToken.type != TokenType::RPAREN) {
-                
+
                 std::string paramName = currentToken.value;
                 eat(TokenType::IDENTIFIER);
 
-                
+
                 std::unique_ptr<ASTNode> defaultValue = nullptr;
                 if (currentToken.type == TokenType::ASSIGN) {
                     eat(TokenType::ASSIGN);
@@ -488,14 +488,14 @@
                     parameters.emplace_back(paramName);
                 }
 
-                
+
                 while (currentToken.type == TokenType::COMMA) {
                     eat(TokenType::COMMA);
 
                     paramName = currentToken.value;
                     eat(TokenType::IDENTIFIER);
 
-                    
+
                     defaultValue = nullptr;
                     if (currentToken.type == TokenType::ASSIGN) {
                         eat(TokenType::ASSIGN);
@@ -508,7 +508,7 @@
             }
             eat(TokenType::RPAREN);
 
-            
+
             eat(TokenType::COLON);
 
             if (currentToken.type != TokenType::INDENT) {
@@ -523,7 +523,7 @@
 
         unique_ptr<ASTNode> parseReturnStatement() {
             int line = currentToken.line;
-            eat(TokenType::RETURN); 
+            eat(TokenType::RETURN);
 
             auto expr = parseExpression();
             return make_unique<ReturnNode>(std::move(expr), line);

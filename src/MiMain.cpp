@@ -63,16 +63,17 @@ int main(int argc, char* argv[]) {
                         cout << PURPLE << wait_prompt << RESET;
                         string temp = ReplReceive();
                         source += '\n' + temp;
-                        if (temp.front()!=' ') {
+                        if (temp.front()!=' ' && temp.back()!=':') {
                             break;
                         }
                     }
                 }
             }
+//             source = processLine(source);
             if (source == "") {
                 continue;
             }
-//             sourcePrint(source, filename);
+//             sourcePrint(source);
 
             Lexer lexer(source);
 

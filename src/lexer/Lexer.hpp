@@ -165,7 +165,7 @@
             indentStack.push(0);
         }
 
-        
+
         Token peekNextToken() {
             size_t savedPos = pos;
             char savedChar = currentChar;
@@ -193,7 +193,7 @@
                         }
                         advance();
                     }
-                    
+
                     if (currentChar == '\n') {
                         line++;
                         advance();
