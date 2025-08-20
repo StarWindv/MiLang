@@ -1,1 +1,1 @@
-clang++ src/MiMain.cpp -o mi.exe -std=c++20
+clang++ src/MiMain.cpp -o mi -std=c++20

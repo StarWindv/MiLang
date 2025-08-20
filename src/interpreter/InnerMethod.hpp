@@ -12,21 +12,21 @@
     >;
 
     void printVariant(const std::variant<long long int, long double, std::string, bool, FunctionType>& var) {
-                std::visit([](const auto& value) {
-                    using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_same_v<T, long long int>) {
-                        std::cout << value;
-                    } else if constexpr (std::is_same_v<T, long double>) {
-                        std::cout << value;
-                    } else if constexpr (std::is_same_v<T, std::string>) {
-                        std::cout << value;
-                    } else if constexpr (std::is_same_v<T, bool>) {
-                        std::cout << std::boolalpha << value;
-                    } else if constexpr (std::is_same_v<T, FunctionType>) {
-                        std::cout << "FunctionType(" << value.name << ")";
-                    }
-                }, var);
+        std::visit([](const auto& value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, long long int>) {
+                std::cout << value;
+            } else if constexpr (std::is_same_v<T, long double>) {
+                std::cout << value;
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                std::cout << value;
+            } else if constexpr (std::is_same_v<T, bool>) {
+                std::cout << std::boolalpha << value;
+            } else if constexpr (std::is_same_v<T, FunctionType>) {
+                std::cout << "FunctionType(" << value.name << ")";
             }
+        }, var);
+    }
 
     class InnerMethod {
     private:
