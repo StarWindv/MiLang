@@ -52,6 +52,8 @@
                 return "string";
             } else if (holds_alternative<BoolType>(val)) {
                 return "bool";
+            } else if (holds_alternative<NullType>(val)) {
+                return "Null";
             } else if (holds_alternative<FunctionType>(val)) {
                 return "function";
             }
@@ -106,6 +108,8 @@
                 return get<BoolType>(val) ? "True" : "False";
             } else if (holds_alternative<FunctionType>(val)) {
                 return "<Function \"" + get<FunctionType>(val).name + "\">";
+            } else if (holds_alternative<NullType>(val)) {
+                return "Null";
             }
             return "Error in \"valueToString\"";
         }

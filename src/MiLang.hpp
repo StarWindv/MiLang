@@ -26,6 +26,7 @@
     using FloatType = long double;
     using StringType = string;
     using BoolType = bool;
+    using NullType = std::monostate;
 
     extern bool DEBUG; // Under Development
     const int MAX_DEAD_LOOP = 200000;
@@ -34,13 +35,15 @@
         std::string name;
     };
 
-    using Value = variant<IntType, FloatType, StringType, BoolType, FunctionType>;
+    using Value = variant<IntType, FloatType, StringType, BoolType, FunctionType, NullType>;
 
     enum class TokenType {
         INTEGER,      // 整数
         FLOAT,        // 浮点数
         STRING,       // 字符串
         BOOLEAN,      // 布尔值
+        NULL_TYPE,         // 空值
+
         IDENTIFIER,   // 标识符(变量名或函数名)
         ASSIGN,       // =
         LPAREN,       // (
@@ -195,6 +198,12 @@
                 lastResult = stmt->evaluate(interpreter);
             }
             return lastResult;
+        }
+    };
+
+    struct NullNode : ASTNode {
+        Value evaluate(Interpreter& interpreter) override {
+            return NullType();
         }
     };
 

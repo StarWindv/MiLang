@@ -11,6 +11,8 @@
         "FLOAT",        // 浮点数
         "STRING",       // 字符串
         "BOOLEAN",      // 布尔值
+        "NULL_TYPE",
+
         "IDENTIFIER",   // 标识符(变量名或函数名)
         "ASSIGN",       // =
         "LPAREN",       // (

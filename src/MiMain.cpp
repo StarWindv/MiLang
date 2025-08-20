@@ -76,13 +76,14 @@ int main(int argc, char* argv[]) {
 
             Value result = interpreter.execute(std::move(program));
             if (isREPL) {
-                if (holds_alternative<IntType>(result) ||
+                if (holds_alternative<IntType>(result)       ||
                         holds_alternative<FloatType>(result) ||
-                        holds_alternative<BoolType>(result) ||
+                        holds_alternative<BoolType>(result)  ||
+                        holds_alternative<NullType>(result)  ||
                         !get<StringType>(result).empty()) {
                         std::string returns = interpreter.getInnerMethod().valueToString(result);
-                        if (returns != "") {
-                            cout << interpreter.getInnerMethod().valueToString(result) << endl;
+                        if (!returns.empty()) {
+                            cout << returns << endl;
                         }
                     }
                 continue;

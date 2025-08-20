@@ -118,6 +118,9 @@
             if (id == "False" || id == "false") {
                 return Token(TokenType::BOOLEAN, "false", line);
             }
+            if (id == "Null") {
+                return Token(TokenType::NULL_TYPE, "Null", line);
+            }
             if (id == "while") {
                 return Token(TokenType::WHILE, id, line);
             }

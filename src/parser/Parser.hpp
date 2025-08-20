@@ -113,6 +113,10 @@
                     eat(TokenType::BOOLEAN);
                     return make_unique<BooleanNode>(value);
                 }
+                case TokenType::NULL_TYPE: {
+                    eat(TokenType::NULL_TYPE);
+                    return make_unique<NullNode>();
+                }
                 case TokenType::NOT: {
                     eat(TokenType::NOT);
                     auto expr = parseFactor();
@@ -163,6 +167,7 @@
                         std::move(factor)
                     );
                 }
+
                 default:
                     error("Invalid token at start of expression");
                     return nullptr;
