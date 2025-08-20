@@ -126,25 +126,79 @@
                     );
 
                 }
+
                 case TokenType::IDENTIFIER: {
                     std::string id = token.value;
                     eat(TokenType::IDENTIFIER);
 
                     if (currentToken.type == TokenType::LPAREN) {
                         eat(TokenType::LPAREN);
-                        vector<unique_ptr<ASTNode>> args;
+                        vector<unique_ptr<ASTNode>> positionalArgs;
+                        std::unordered_map<std::string, std::unique_ptr<ASTNode>> namedArgs;
+                        bool hasNamedArgs = false;
 
                         if (currentToken.type != TokenType::RPAREN) {
-                            args.push_back(parseExpression());
+                            
+                            if (currentToken.type == TokenType::IDENTIFIER) {
+                                
+                                Token nextToken = lexer.peekNextToken();
 
+                                
+                                if (nextToken.type == TokenType::ASSIGN) {
+                                    hasNamedArgs = true;
+                                    std::string paramName = currentToken.value;
+                                    eat(TokenType::IDENTIFIER);
+                                    eat(TokenType::ASSIGN);
+                                    auto expr = parseExpression();
+                                    namedArgs[paramName] = std::move(expr);
+                                } else {
+                                    
+                                    positionalArgs.push_back(parseExpression());
+                                }
+                            } else {
+                                
+                                positionalArgs.push_back(parseExpression());
+                            }
+
+                            
                             while (currentToken.type == TokenType::COMMA) {
                                 eat(TokenType::COMMA);
-                                args.push_back(parseExpression());
+
+                                if (currentToken.type == TokenType::IDENTIFIER) {
+                                    
+                                    Token nextToken = lexer.peekNextToken();
+
+                                    
+                                    if (nextToken.type == TokenType::ASSIGN) {
+                                        hasNamedArgs = true;
+                                        std::string paramName = currentToken.value;
+                                        eat(TokenType::IDENTIFIER);
+                                        eat(TokenType::ASSIGN);
+                                        auto expr = parseExpression();
+                                        namedArgs[paramName] = std::move(expr);
+                                    } else {
+                                        if (hasNamedArgs) {
+                                            error("Positional argument cannot follow named argument");
+                                        }
+                                        positionalArgs.push_back(parseExpression());
+                                    }
+                                } else {
+                                    
+                                    if (hasNamedArgs) {
+                                        error("Positional argument cannot follow named argument");
+                                    }
+                                    positionalArgs.push_back(parseExpression());
+                                }
                             }
                         }
 
                         eat(TokenType::RPAREN);
-                        return make_unique<CallNode>(id, std::move(args));
+
+                        if (hasNamedArgs) {
+                            return make_unique<CallNode>(id, std::move(positionalArgs), std::move(namedArgs));
+                        } else {
+                            return make_unique<CallNode>(id, std::move(positionalArgs));
+                        }
                     } else {
                         if (currentToken.type == TokenType::LPAREN) {
                             error("Missing multiplication operator; use " + id + " * (...) instead");
@@ -406,6 +460,74 @@
             return make_unique<IfNode>(std::move(branches), std::move(elseBlock));
         }
 
+        
+        
+        unique_ptr<ASTNode> parseFunctionDefinition() {
+            eat(TokenType::DEF);
+
+            
+            std::string name = currentToken.value;
+            eat(TokenType::IDENTIFIER);
+
+            
+            eat(TokenType::LPAREN);
+            std::vector<Parameter> parameters;
+
+            if (currentToken.type != TokenType::RPAREN) {
+                
+                std::string paramName = currentToken.value;
+                eat(TokenType::IDENTIFIER);
+
+                
+                std::unique_ptr<ASTNode> defaultValue = nullptr;
+                if (currentToken.type == TokenType::ASSIGN) {
+                    eat(TokenType::ASSIGN);
+                    defaultValue = parseExpression();
+                    parameters.emplace_back(paramName, std::move(defaultValue));
+                } else {
+                    parameters.emplace_back(paramName);
+                }
+
+                
+                while (currentToken.type == TokenType::COMMA) {
+                    eat(TokenType::COMMA);
+
+                    paramName = currentToken.value;
+                    eat(TokenType::IDENTIFIER);
+
+                    
+                    defaultValue = nullptr;
+                    if (currentToken.type == TokenType::ASSIGN) {
+                        eat(TokenType::ASSIGN);
+                        defaultValue = parseExpression();
+                        parameters.emplace_back(paramName, std::move(defaultValue));
+                    } else {
+                        parameters.emplace_back(paramName);
+                    }
+                }
+            }
+            eat(TokenType::RPAREN);
+
+            
+            eat(TokenType::COLON);
+
+            if (currentToken.type != TokenType::INDENT) {
+                error("Expected indentation after function definition");
+            }
+            eat(TokenType::INDENT);
+
+            auto body = parseBlock();
+
+            return make_unique<FunctionDefinitionNode>(name, parameters, std::move(body));
+        }
+
+        unique_ptr<ASTNode> parseReturnStatement() {
+            int line = currentToken.line;
+            eat(TokenType::RETURN); 
+
+            auto expr = parseExpression();
+            return make_unique<ReturnNode>(std::move(expr), line);
+        }
 
         unique_ptr<ASTNode> parseStatement() {
             switch (currentToken.type) {
@@ -428,6 +550,12 @@
                     } else {
                         return parseExpression();
                     }
+                }
+                case TokenType::DEF: {
+                    return parseFunctionDefinition();
+                }
+                case TokenType::RETURN: {
+                    return parseReturnStatement();
                 }
                 case TokenType::WHILE: {
                     return parseWhileStatement();

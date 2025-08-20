@@ -121,6 +121,12 @@
             if (id == "Null") {
                 return Token(TokenType::NULL_TYPE, "Null", line);
             }
+            if (id == "fx" || id == "def") {
+                return Token(TokenType::DEF, id, line);
+            }
+            if (id == "return") {
+                return Token(TokenType::RETURN, id, line);
+            }
             if (id == "while") {
                 return Token(TokenType::WHILE, id, line);
             }
@@ -157,6 +163,21 @@
                 currentChar = source[0];
             }
             indentStack.push(0);
+        }
+
+        
+        Token peekNextToken() {
+            size_t savedPos = pos;
+            char savedChar = currentChar;
+            Token savedToken = currentToken;
+
+            Token nextToken = getNextToken();
+
+            pos = savedPos;
+            currentChar = savedChar;
+            currentToken = savedToken;
+
+            return nextToken;
         }
 
         Token getNextToken() {

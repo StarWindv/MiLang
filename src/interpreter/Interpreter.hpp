@@ -3,6 +3,7 @@
 
     #include "InnerMethod.hpp"
     #include "../colors.hpp"
+    #include "../MiLang.hpp"
 
     using FuncVector = std::vector<
         std::pair<
@@ -45,21 +46,32 @@
                 {"print",   wrapIMFuncWithArg(&InnerMethod::printlnFunction, false)},
             };
             this->funcList = funcs;
-            auto getFuncList = [this]() -> const FuncVector& {
-                return this->funcList;
-            }; 
-            auto innerFunc = wrapIMFuncWithArg(&InnerMethod::funcList, getFuncList);
-            funcList.push_back({"inner", innerFunc});
+
             for (const auto& [name, func] : funcList) {
                 builtinFunctions[name] = func;
-                frames.top()->set(
-                    name, FunctionType{name}
-                );
+
+                
+                auto funcType = std::make_shared<FunctionType>(name);
+                frames.top()->set(name, funcType);
             }
+            auto getFuncList = [this]() -> const FuncVector& {
+                return this->funcList;
+            };
+            auto innerFunc = wrapIMFuncWithArg(&InnerMethod::funcList, getFuncList);
+            funcList.push_back({"inner", innerFunc});
+            builtinFunctions["inner"] = innerFunc;
+
+            
+            auto innerFuncType = std::make_shared<FunctionType>("inner");
+            frames.top()->set("inner", innerFuncType);
 
         }
 
         InnerMethod& getInnerMethod() { return innermethod; }
+
+        bool isBuiltinFunction(const std::string& name) const {
+            return builtinFunctions.find(name) != builtinFunctions.end();
+        }
 
         bool getVariable(const string& name, Value& outValue) const {
             if (frames.empty()) {
@@ -108,8 +120,6 @@
             }
             return it->second(innermethod, args);
         }
-
-        
         Frame* getParentFrame() const {
             if (frames.size() < 2) return nullptr;
             return frames.top()->parent;

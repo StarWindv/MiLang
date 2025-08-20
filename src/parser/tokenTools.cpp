@@ -44,6 +44,8 @@
 
         "WHILE",
         "FOR",
+        "DEF",
+        "RETURN",
 
         "IF",
         "ELIF",

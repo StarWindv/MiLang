@@ -22,7 +22,7 @@ using FloatType = long double;
 using StringType = string;
 using BoolType = bool;
 const string prompt      = ">>> ";
-const string wait_prompt = "..> ";
+const string wait_prompt = "  > ";
 
 
 int main(int argc, char* argv[]) {
@@ -39,7 +39,12 @@ int main(int argc, char* argv[]) {
     } else {
         isREPL = false;
         filename = argv[1];
-        source = readFile(filename);
+        try {
+            source = readFile(filename);
+        } catch (const runtime_error& e) {
+            cout << "No such file: " << filename << endl;
+            return 1;
+        }
         if (source == "") {
             return 0;
         }
@@ -67,7 +72,7 @@ int main(int argc, char* argv[]) {
             if (source == "") {
                 continue;
             }
-            sourcePrint(source, filename);
+//             sourcePrint(source, filename);
 
             Lexer lexer(source);
 
@@ -77,10 +82,11 @@ int main(int argc, char* argv[]) {
             Value result = interpreter.execute(std::move(program));
             if (isREPL) {
                 if (holds_alternative<IntType>(result)       ||
-                        holds_alternative<FloatType>(result) ||
-                        holds_alternative<BoolType>(result)  ||
-                        holds_alternative<NullType>(result)  ||
-                        !get<StringType>(result).empty()) {
+                    holds_alternative<FloatType>(result) ||
+                    holds_alternative<BoolType>(result)  ||
+                    holds_alternative<NullType>(result)  ||
+                    holds_alternative<FunctionTypePtr>(result)  ||
+                    !get<StringType>(result).empty()) {
                         std::string returns = interpreter.getInnerMethod().valueToString(result);
                         if (!returns.empty()) {
                             cout << returns << endl;

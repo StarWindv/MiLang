@@ -1,4 +1,7 @@
-println(">>> TEST DEFINE VARIABLE")
+fx title(things):
+    println(">>> TEST {}", things)
+
+title("DEFINE VARIABLE")
 a = 5
 writeln("a = {}", a)
 writeln("<<< END TEST DEFINE VARIABLE")

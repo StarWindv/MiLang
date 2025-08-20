@@ -11,7 +11,7 @@
         >
     >;
 
-    void printVariant(const std::variant<long long int, long double, std::string, bool, FunctionType>& var) {
+    void printVariant(const std::variant<long long int, long double, std::string, bool, FunctionTypePtr>& var) {
         std::visit([](const auto& value) {
             using T = std::decay_t<decltype(value)>;
             if constexpr (std::is_same_v<T, long long int>) {
@@ -22,8 +22,8 @@
                 std::cout << value;
             } else if constexpr (std::is_same_v<T, bool>) {
                 std::cout << std::boolalpha << value;
-            } else if constexpr (std::is_same_v<T, FunctionType>) {
-                std::cout << "FunctionType(" << value.name << ")";
+            } else if constexpr (std::is_same_v<T, FunctionTypePtr>) {
+                std::cout << "FunctionType(" << value->name << ")";
             }
         }, var);
     }
@@ -54,7 +54,7 @@
                 return "bool";
             } else if (holds_alternative<NullType>(val)) {
                 return "Null";
-            } else if (holds_alternative<FunctionType>(val)) {
+            } else if (holds_alternative<FunctionTypePtr>(val)) {
                 return "function";
             }
                 return "unknown";
@@ -106,8 +106,8 @@
                 return get<StringType>(val);
             } else if (holds_alternative<BoolType>(val)) {
                 return get<BoolType>(val) ? "True" : "False";
-            } else if (holds_alternative<FunctionType>(val)) {
-                return "<Function \"" + get<FunctionType>(val).name + "\">";
+            } else if (holds_alternative<FunctionTypePtr>(val)) {
+                return "<Function \"" + get<FunctionTypePtr>(val)->name + "\">";
             } else if (holds_alternative<NullType>(val)) {
                 return "Null";
             }
@@ -198,8 +198,8 @@
             }
 
             const Value& arg = args[0];
-            if (holds_alternative<FunctionType>(arg)) {
-                return StringType("<Function \"" + get<FunctionType>(arg).name + "\">");
+            if (holds_alternative<FunctionTypePtr>(arg)) {
+                return StringType("<Function \"" + get<FunctionTypePtr>(arg)->name + "\">");
             }
             return StringType(getTypeName(arg));
         }
@@ -385,7 +385,6 @@
                             
                             outputWithEscape(format.substr(pos, pos - pos));
 
-                            
                             if (paramIndex < params.size()) {
                                 if (holds_alternative<StringType>(params[paramIndex])) {
                                     outputWithEscape(get<StringType>(params[paramIndex]));
@@ -399,7 +398,6 @@
                             continue;
                         }
 
-                        
                         if (format[pos] == '{' || format[pos] == '}') {
                             size_t start = pos;
                             size_t end = format.find_first_of("{}", pos + 1);
@@ -409,14 +407,10 @@
                                 outputWithEscape(format.substr(pos));
                                 break;
                             }
-
-                            
                             outputWithEscape(format.substr(pos, end - pos + 1));
                             pos = end + 1;
                             continue;
                         }
-
-                        
                         size_t nextSpecial = format.find_first_of("\\{}", pos);
                         if (nextSpecial == string::npos) {
                             
@@ -424,7 +418,6 @@
                             break;
                         }
 
-                        
                         outputWithEscape(format.substr(pos, nextSpecial - pos));
                         pos = nextSpecial;
                     }
@@ -470,14 +463,8 @@
             auto data = getFuncList();
             int count = 0;
             for (const auto& [name, func] : data) {
-                cout << name << "      ";
                 count++;
-                if (count % 4 == 0) {
-                    cout << endl;
-                }
-            }
-            if (count % 4 != 0) {
-                cout << endl;
+                cout << name << endl;
             }
             return StringType("");
         }

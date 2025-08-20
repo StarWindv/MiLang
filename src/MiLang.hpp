@@ -31,11 +31,10 @@
     extern bool DEBUG; // Under Development
     const int MAX_DEAD_LOOP = 200000;
 
-    struct FunctionType {
-        std::string name;
-    };
+    struct FunctionType;
+    using FunctionTypePtr = std::shared_ptr<FunctionType>;
 
-    using Value = variant<IntType, FloatType, StringType, BoolType, FunctionType, NullType>;
+    using Value = variant<IntType, FloatType, StringType, BoolType, FunctionTypePtr, NullType>;
 
     enum class TokenType {
         INTEGER,      // 整数
@@ -75,6 +74,8 @@
 
         WHILE,
         FOR,
+        DEF,
+        RETURN,
 
         IF,
         ELIF,
@@ -152,12 +153,28 @@
     };
 
 
+//     struct CallNode : ASTNode {
+//         std::string name;
+//         vector<unique_ptr<ASTNode>> arguments;
+//
+//         CallNode(const string& name, vector<unique_ptr<ASTNode>> args)
+//             : name(name), arguments(std::move(args)) {}
+//
+//         Value evaluate(Interpreter& interpreter) override;
+//     };
+// MiLang.hpp
     struct CallNode : ASTNode {
         std::string name;
-        vector<unique_ptr<ASTNode>> arguments;
+        vector<unique_ptr<ASTNode>> positionalArguments;
+        std::unordered_map<std::string, std::unique_ptr<ASTNode>> namedArguments;
 
         CallNode(const string& name, vector<unique_ptr<ASTNode>> args)
-            : name(name), arguments(std::move(args)) {}
+            : name(name), positionalArguments(std::move(args)) {}
+
+        CallNode(const string& name,
+                 vector<unique_ptr<ASTNode>> positionalArgs,
+                 std::unordered_map<std::string, std::unique_ptr<ASTNode>> namedArgs)
+            : name(name), positionalArguments(std::move(positionalArgs)), namedArguments(std::move(namedArgs)) {}
 
         Value evaluate(Interpreter& interpreter) override;
     };
@@ -186,6 +203,19 @@
     };
 
 
+    class ReturnException : public std::exception {
+        public:
+            Value value;
+            int line;
+
+            ReturnException(Value value, int line) : value(value), line(line) {}
+
+            const char* what() const noexcept override {
+                return "Return statement";
+            }
+        };
+
+
     struct BlockNode : ASTNode {
         vector<unique_ptr<ASTNode>> statements;
 
@@ -195,10 +225,69 @@
         Value evaluate(Interpreter& interpreter) override {
             Value lastResult;
             for (auto& stmt : statements) {
-                lastResult = stmt->evaluate(interpreter);
+                try {
+                    lastResult = stmt->evaluate(interpreter);
+                } catch (const ReturnException& e) {
+                    throw;
+                } catch (const std::exception& e) {
+                    throw;
+                }
             }
             return lastResult;
         }
+    };
+
+    struct Parameter {
+        std::string name;
+        std::shared_ptr<ASTNode> defaultValue;  // 改为 shared_ptr
+        bool hasDefault;
+
+        Parameter(const std::string& name)
+            : name(name), hasDefault(false) {}
+
+        Parameter(const std::string& name, std::shared_ptr<ASTNode> defaultValue)  // 相应修改
+            : name(name), defaultValue(std::move(defaultValue)), hasDefault(true) {}
+    };
+
+    struct FunctionDefinitionNode : ASTNode {
+        std::string name;
+        std::vector<Parameter> parameters;
+        std::unique_ptr<BlockNode> body;
+
+        FunctionDefinitionNode(const std::string& name,
+                              const std::vector<Parameter>& parameters,
+                              std::unique_ptr<BlockNode> body)
+            : name(name), parameters(parameters), body(std::move(body)) {}
+
+        Value evaluate(Interpreter& interpreter) override;
+    };
+
+
+
+    struct FunctionType {
+        std::string name;
+        std::vector<Parameter> parameters;
+        std::unique_ptr<BlockNode> body;
+
+        // 添加构造函数
+        FunctionType(const std::string& name,
+                     const std::vector<Parameter>& parameters,
+                     std::unique_ptr<BlockNode> body)
+            : name(name), parameters(parameters), body(std::move(body)) {}
+        explicit FunctionType(const std::string& name)
+                : name(name) {}
+    };
+
+
+
+    struct ReturnNode : ASTNode {
+        unique_ptr<ASTNode> expr;
+        int line;
+
+        ReturnNode(unique_ptr<ASTNode> expr, int line)
+            : expr(std::move(expr)), line(line) {}
+
+        Value evaluate(Interpreter& interpreter) override;
     };
 
     struct NullNode : ASTNode {
@@ -262,6 +351,9 @@
 
         Value evaluate(Interpreter& interpreter) override;
     };
+
+
+
 
     struct Frame {
         unordered_map<string, Value> variables;
