@@ -77,6 +77,9 @@
         ELIF,
         ELSE,
 
+        BREAK,
+        CONTINUE,
+
         INDENT,       // 缩进
         DEDENT,       // 解除缩进
         EOF_TOKEN,    // 文件结束
@@ -235,6 +238,22 @@
         Value evaluate(Interpreter& interpreter) override;
     };
 
+    struct BreakNode : ASTNode {
+        int line;
+
+        BreakNode(int line) : line(line) {}
+
+        Value evaluate(Interpreter& interpreter) override;
+    };
+
+    struct ContinueNode : ASTNode {
+        int line;
+
+        ContinueNode(int line) : line(line) {}
+
+        Value evaluate(Interpreter& interpreter) override;
+    };
+
     struct Frame {
         unordered_map<string, Value> variables;
         Frame* parent;
@@ -309,26 +328,5 @@
         };
     }
 
-    template<typename F>
-    auto wrapIFunc(F&& func) {
-        /*
-        #  将解释器成员方法包装、注册为内置函数
-        */
-        return [func = std::forward<F>(func)](Interpreter& i, const std::vector<Value>& args) {
-            return (i.*func)(args);
-        };
-    }
-
-    template<typename F, typename Arg1>
-    auto wrapIFuncWithArg(F&& func, Arg1&& arg1) {
-        /*
-        #  同上, 但是可带参数
-        */
-        return [func = std::forward<F>(func), arg1 = std::forward<Arg1>(arg1)](
-            Interpreter& i, const std::vector<Value>& args
-        ) {
-            return (i.*func)(args, arg1);
-        };
-    }
 
 #endif

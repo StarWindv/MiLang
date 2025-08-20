@@ -433,6 +433,16 @@
                 case TokenType::IF: {
                     return parseIfStatement();
                 }
+                case TokenType::BREAK: {
+                    int line = currentToken.line;
+                    eat(TokenType::BREAK);
+                    return make_unique<BreakNode>(line);
+                }
+                case TokenType::CONTINUE: {
+                    int line = currentToken.line;
+                    eat(TokenType::CONTINUE);
+                    return make_unique<ContinueNode>(line);
+                }
 
                 default:
                     return parseExpression();

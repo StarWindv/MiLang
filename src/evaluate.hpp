@@ -32,27 +32,38 @@
         interpreter.pushFrame();
         int loopCount = 0;
         while (true) {
-            Value condValue = condition->evaluate(interpreter);
-            InnerMethod& inner = interpreter.getInnerMethod();
-            
-            bool conditionTrue = false;
-            if (holds_alternative<IntType>(condValue)) {
-                conditionTrue = (get<IntType>(condValue) != 0);
-            } else if (holds_alternative<FloatType>(condValue)) {
-                conditionTrue = (get<FloatType>(condValue) != 0.0);
-            } else if (holds_alternative<BoolType>(condValue)) {
-                conditionTrue = get<BoolType>(condValue);
-            } else if (holds_alternative<StringType>(condValue)) {
-                conditionTrue = !get<StringType>(condValue).empty();
-            } else {
-                throw runtime_error("Type error in while condition at line " + to_string(line));
-            }
-            
-            if (!conditionTrue) {
-                break;
-            }
+            try{
+                Value condValue = condition->evaluate(interpreter);
+                InnerMethod& inner = interpreter.getInnerMethod();
 
-            body->evaluate(interpreter);
+                bool conditionTrue = false;
+                if (holds_alternative<IntType>(condValue)) {
+                    conditionTrue = (get<IntType>(condValue) != 0);
+                } else if (holds_alternative<FloatType>(condValue)) {
+                    conditionTrue = (get<FloatType>(condValue) != 0.0);
+                } else if (holds_alternative<BoolType>(condValue)) {
+                    conditionTrue = get<BoolType>(condValue);
+                } else if (holds_alternative<StringType>(condValue)) {
+                    conditionTrue = !get<StringType>(condValue).empty();
+                } else {
+                    throw runtime_error("Type error in while condition at line " + to_string(line));
+                }
+
+                if (!conditionTrue) {
+                    break;
+                }
+
+                body->evaluate(interpreter);
+            } catch (const runtime_error& e) {
+                string errMsg = e.what();
+                if (errMsg.find("Break outside of loop") != string::npos) {
+                    break;
+                } else if (errMsg.find("Continue outside of loop") != string::npos) {
+                    continue;
+                } else {
+                    throw;
+                }
+            }
 
             if (++loopCount > MAX_DEAD_LOOP) {
                 throw runtime_error("Possible infinite loop detected at line " + to_string(line));
@@ -78,37 +89,46 @@
 
             int loopCount = 0;
             while (true) {
-                
-                Value condValue = condition->evaluate(interpreter);
-                InnerMethod& inner = interpreter.getInnerMethod();
+                try {
+                    Value condValue = condition->evaluate(interpreter);
+                    InnerMethod& inner = interpreter.getInnerMethod();
 
-                
-                bool conditionTrue = false;
-                if (holds_alternative<IntType>(condValue)) {
-                    conditionTrue = (get<IntType>(condValue) != 0);
-                } else if (holds_alternative<FloatType>(condValue)) {
-                    conditionTrue = (get<FloatType>(condValue) != 0.0);
-                } else if (holds_alternative<BoolType>(condValue)) {
-                    conditionTrue = get<BoolType>(condValue);
-                } else if (holds_alternative<StringType>(condValue)) {
-                    conditionTrue = !get<StringType>(condValue).empty();
-                } else {
-                    throw runtime_error("Type error in for condition at line " + to_string(line));
+
+                    bool conditionTrue = false;
+                    if (holds_alternative<IntType>(condValue)) {
+                        conditionTrue = (get<IntType>(condValue) != 0);
+                    } else if (holds_alternative<FloatType>(condValue)) {
+                        conditionTrue = (get<FloatType>(condValue) != 0.0);
+                    } else if (holds_alternative<BoolType>(condValue)) {
+                        conditionTrue = get<BoolType>(condValue);
+                    } else if (holds_alternative<StringType>(condValue)) {
+                        conditionTrue = !get<StringType>(condValue).empty();
+                    } else {
+                        throw runtime_error("Type error in for condition at line " + to_string(line));
+                    }
+
+                    if (!conditionTrue) {
+                        break;
+                    }
+
+                    body->evaluate(interpreter);
+                } catch (const runtime_error& e) {
+                    string errMsg = e.what();
+                    if (errMsg.find("Break outside of loop") != string::npos) {
+                        break;
+                    } else if (errMsg.find("Continue outside of loop") != string::npos) {
+                        if (update) {
+                            update->evaluate(interpreter);
+                        }
+                        continue;
+                    } else {
+                        throw;
+                    }
                 }
-
-                if (!conditionTrue) {
-                    break;
-                }
-
-                
-                body->evaluate(interpreter);
-
-                
                 if (update) {
                     update->evaluate(interpreter);
                 }
 
-                
                 if (++loopCount > MAX_DEAD_LOOP) {
                     throw runtime_error("Possible infinite loop detected at line " + to_string(line));
                 }
@@ -152,6 +172,14 @@
         }
 
         return 0; 
+    }
+
+    Value BreakNode::evaluate(Interpreter& interpreter) {
+        throw runtime_error("Break outside of loop at line " + to_string(line));
+    }
+
+    Value ContinueNode::evaluate(Interpreter& interpreter) {
+        throw runtime_error("Continue outside of loop at line " + to_string(line));
     }
 
 #endif

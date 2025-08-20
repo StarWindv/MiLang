@@ -133,6 +133,12 @@
             if (id == "else") {
                 return Token(TokenType::ELSE, id, line);
             }
+            if (id == "break") {
+                return Token(TokenType::BREAK, id, line);
+            }
+            if (id == "continue") {
+                return Token(TokenType::CONTINUE, id, line);
+            }
 
             return Token(TokenType::IDENTIFIER, id, line);
         }
